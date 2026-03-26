@@ -1,59 +1,128 @@
-I made a simple Flipper app to write magic ISO15693 changeable UID with .nfc file 
+# SLI Writer — Magic ISO15693 UID Writer
 
-EDIT 26/03 I developped the Android version of the app, available as .apk, I can share sources if anyone needs them.
+I made a simple Flipper app to write **magic ISO15693 tags with changeable UID** using `.nfc` files.
 
-For a SLIX2/ISO15693 use : aliexpress.com/item/1005006949791537.html?
-One user reporter the round ones aren't working, so stick with the rectangulars !
+---
 
-For SLIX-L tags use : http://rfidfriend.com 
-  
-I tried to vibecode the app 6 months ago but I was stuck, somehow it ended in Roguemaster firmawre but I don't know if it was corrected ... ?   
+## 📱 Update (26/03)
 
-I recently found out the "ISO 15693-3 NFC Writer" app in Unleashed and it had everything needed for me to correct the code - so now it is working fine.
+I also developed an **Android version** of the app, available as an `.apk`.
 
-## Write sequence
+I can share the source code if anyone needs it.
 
-1. Write all data blocks (non-addressed `WRITE_SINGLE_BLOCK`, flags `0x02`)
-2. Write UID using Gen2 vendor commands:
-   - `02 E0 09 40 <uid_high>` — sets bytes 0–3
-   - `02 E0 09 41 <uid_low>` — sets bytes 4–7
-   - equivalent to Proxmark `hf 15 csetuid -u <uid> --v2`
+---
 
-> **Note:** The Gen2 layout command (`0x47`) is intentionally **not sent**.  
-> It is not needed for most readers, and would brick SLIX-L magic cards.
+## 🏷️ Supported Tags
 
-## Debugging
+### SLIX2 / ISO15693 (Magic UID)
+You can use:
+https://aliexpress.com/item/1005006949791537.html
 
-If the write fails, connect your Flipper via USB and open a serial console (Putty, `screen`, etc.) at **230400 baud**.
+⚠️ One user reported that **round tags are not working**,  
+so it’s recommended to **stick with rectangular ones**.
 
-Enable debug logs on the Flipper:
+---
+
+### SLIX-L Tags
+Use:
+http://rfidfriend.com
+
+---
+
+## 🧠 Background
+
+I originally tried to *vibecode* this app about 6 months ago but got stuck.  
+It somehow ended up in Roguemaster firmware, although I’m not sure if it was ever fixed there.
+
+Recently, I discovered the **"ISO 15693-3 NFC Writer"** app in Unleashed,  
+which contained everything needed to fix my implementation.
+
+The app is now **fully working**.
+
+---
+
+## ✍️ Write Sequence
+
+### 1. Write data blocks
+- Command: `WRITE_SINGLE_BLOCK`
+- Mode: **non-addressed**
+- Flags: `0x02`
+
+---
+
+### 2. Write UID (Gen2 vendor commands)
+
+```
+02 E0 09 40 <uid_high>   → sets bytes 0–3
+02 E0 09 41 <uid_low>    → sets bytes 4–7
+```
+
+Equivalent to:
+```
+proxmark hf 15 csetuid -u <uid> --v2
+```
+
+---
+
+### ⚠️ Important
+
+The Gen2 layout command (`0x47`) is **intentionally NOT sent**.
+
+- Not required for most readers
+- **Will brick SLIX-L magic cards**
+
+---
+
+## 🛠️ Debugging
+
+If writing fails:
+
+1. Connect your Flipper via USB  
+2. Open a serial console (Putty, screen, etc.)  
+3. Set baud rate to:
+```
+230400
+```
+
+---
+
+### Enable debug logs:
+
 ```
 > log debug
 ```
 
-Then look for `[SLI_Writer]` lines. Key messages:
-- `iso_send_raw: err=0 rxbytes=2 resp=[XX YY]` — card received the command but returned an error; `YY` is the ISO15693 error code
-- `iso_send_raw: err=6 rxbytes=0` — card did not respond (timeout/CRC issue)
-- `Write block N failed` — block write failed after 5 retries
+Then look for:
+```
+[SLI_Writer]
+```
 
 ---
 
-## Changelog
+### Key debug messages
 
-### v2 — Debug improvements
-- Added response byte logging: `resp=[XX YY]` now shows the exact ISO15693 error code returned by the card
-- This helps diagnose cards that receive commands but refuse to write
+```
+iso_send_raw: err=0 rxbytes=2 resp=[XX YY]
+```
+- Command received
+- Card returned an error
+- `YY` = ISO15693 error code
 
-### v1.1 — Timing improvements
-- FWT (frame wait time): `300000` → `500000` carrier cycles (~37ms) — more time for card response
-- Inter-block delay: `12ms` → `20ms` — more time for NVM write cycle
-- Write retries: `3` → `5` attempts with `20ms` between each
-- Improves compatibility with some card variants (round vs rectangular form factor)
+```
+iso_send_raw: err=6 rxbytes=0
+```
+- No response
+- Likely timeout or CRC issue
 
-### v1.0 — Initial release
-- Parse `.nfc` file (UID, block count, block size, data)
-- Write data blocks using non-addressed `WRITE_SINGLE_BLOCK`
-- Write UID using Gen2 vendor commands (`0x40` / `0x41`)
-- Callback-driven NFC poller (no custom worker thread — stable, no crashes)
-- LED feedback: blue on scan, green on success, red on error
-- Based on the official `iso15693_nfc_writer` worker pattern from Unleashed
+```
+Write block N failed
+```
+- Block write failed after retries
+
+---
+
+## ✅ Status
+
+✔ Working reliably  
+✔ Supports SLIX / SLIX2 magic tags  
+✔ Android version available  
