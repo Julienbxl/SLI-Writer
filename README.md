@@ -1,9 +1,10 @@
 I made a simple Flipper app to write magic ISO15693 changeable UID with .nfc file 
-  
-To use with latest Unleashed firmware  
+EDIT 26/03 I developped the Android version of the app, available as .apk, I can share sources if anyone needs them.
 
-Exact card used is : aliexpress.com/item/1005006949791537.html?
+For a SLIX2/ISO15693 use : aliexpress.com/item/1005006949791537.html?
 One user reporter the round ones aren't working, so stick with the rectangulars !
+
+For SLIX-L tags use : http://rfidfriend.com 
   
 I tried to vibecode the app 6 months ago but I was stuck, somehow it ended in Roguemaster firmawre but I don't know if it was corrected ... ?   
 
