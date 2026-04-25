@@ -13,6 +13,8 @@ Sadly it is impossible to read a tag in privacy mode due to Android limitations.
 [rfidfriend.com](http://rfidfriend.com) in **normal** mode or [AliExpress — PiSwords](https://aliexpress.com/item/1005006949791537.html) in **special** mode.
 
 These are weird tags that need to be configured back to their original UID to unlock data write.
+The old rectangulars tags were working fine with the **normal** mode - always try it first.
+
 Save the original UID (usually the same if you order several tags from the same batch) and use **Write Special**.
 
 > ⚠️ **Back up the original UID — if you lose it, you will never be able to rewrite the tags.**
@@ -21,7 +23,7 @@ Save the original UID (usually the same if you order several tags from the same 
 
 ### SLIX-L Tags
 
-[rfidfriend.com](http://rfidfriend.com)
+[rfidfriend.com](http://rfidfriend.com) in **normal** mode
 
 ---
 
