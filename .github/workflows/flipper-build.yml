@@ -1,0 +1,71 @@
+name: Build Flipper App
+
+on:
+  push:
+    branches: [ "main", "master", "dev" ]
+    paths:
+      - 'Flipper/**'
+      - '.github/workflows/**'
+      - 'README.md'
+  pull_request:
+    branches: [ "main", "master", "dev" ]
+    paths:
+      - 'Flipper/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build (${{ matrix.firmware.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        firmware:
+          - name: Unleashed
+            sdk-index-url: https://up.unleashedflip.com/directory.json
+            sdk-channel: dev
+          - name: Official-Release
+            sdk-index-url: ''
+            sdk-channel: release
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install ufbt
+        run: pip install --upgrade ufbt
+
+      - name: Update ufbt SDK (${{ matrix.firmware.name }})
+        run: |
+          if [ -n "${{ matrix.firmware.sdk-index-url }}" ]; then
+            ufbt update --index-url="${{ matrix.firmware.sdk-index-url }}"
+          else
+            ufbt update --channel="${{ matrix.firmware.sdk-channel }}"
+          fi
+
+      - name: Build Flipper Application
+        run: |
+          cd Flipper
+          ufbt build
+
+      - name: Prepare Artifacts
+        run: |
+          mkdir -p build-output/${{ matrix.firmware.name }}
+          # Copy generated .fap files from current dir or ~/.ufbt/build
+          find . ~/.ufbt/build -name "*.fap" -exec cp {} build-output/${{ matrix.firmware.name }}/ \; 2>/dev/null || true
+          # Also copy application.fam so manifest can be inspected or downloaded
+          cp Flipper/application.fam build-output/${{ matrix.firmware.name }}/
+          ls -la build-output/${{ matrix.firmware.name }}/
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sli-writer-${{ matrix.firmware.name }}
+          path: build-output/${{ matrix.firmware.name }}/
+          if-no-files-found: error
